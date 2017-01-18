@@ -83,14 +83,15 @@ public class SRAgent {
 		// '+' = cheese
 		String inv = senses[1];
 		
-		//sp.processRetinalField(senses[2]);
+		sp.processRetinalField(senses[2]);
 		//ArrayList<ArrayList<Vector<Character>>> visField = sp.getVisualArray();
+		String[][] visField = processVisual(sp.getVisualArray());
 		
 		String groundContents = senses[3];
 		String energy = senses[5];
 		String lastAction = senses[6];
 		
-		return new State(heading, inv, groundContents, energy, lastAction);
+		return new State(heading, inv, groundContents, energy, lastAction, visField);
 	}
 	
 	private String[][] processVisual(ArrayList<ArrayList<Vector<Character>>> visField){
@@ -119,14 +120,16 @@ public class SRAgent {
 		String groundContents;
 		String energy;
 		String lastAction;
+		String[][] visField;
 		
 		public State(String heading, String inv, String groundContents, 
-				String energy, String lastAction){
+				String energy, String lastAction, String[][] visField){
 			this.heading = heading;
 			this.inv = inv;
 			this.groundContents = groundContents;
 			this.energy = energy;
 			this.lastAction = lastAction;
+			this.visField = visField;
 		}
 	}
 }
