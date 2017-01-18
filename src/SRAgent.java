@@ -100,7 +100,9 @@ public class SRAgent {
 		for( int i=0; i<visField.size(); i++){
 			for ( int j=0; j<visField.get(i).size(); j++){
 				for( Character item : visField.get(i).get(j)){
-					newVisField[i][j] = "" + item.charValue();
+					if( item.charValue() != '"'){
+						newVisField[i][j] = "" + item.charValue();
+					}
 				}
 			}
 		}
