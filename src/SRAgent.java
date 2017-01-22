@@ -8,6 +8,7 @@ public class SRAgent {
 	private static final int MAEDENPORT = 7237;
 	private static final int CURRENT_COL = 2;// 2
 	private static final int CURRENT_ROW = 5;// 1
+	private static final double STARTING_ENERGY = 2000;
 	protected GridClient gc;
 
 	public SRAgent(String h, int p) {
@@ -31,7 +32,6 @@ public class SRAgent {
 		Scanner scan = new Scanner(System.in);
 		scan.nextLine();
 		// *****
-
 		switch (action.charAt(0)) {
 		case 'f':
 			// move forward
@@ -84,9 +84,20 @@ public class SRAgent {
 
 	private String getAction(State state) {
 		String action;
+		System.out.println("The energy is " + state.energy + "vs" + (STARTING_ENERGY * 0.9));
 		action = grabItem(state.visField, state.groundContents);
+		if (action == null && state.inv.contains("T")) {
+			action = checkBoulder(state.visField);
+		}
+		if (action == null && state.energy < (STARTING_ENERGY * (0.9)) && state.energy > (STARTING_ENERGY * (0.79))) {
+			action = hugWall(state.visField);
+		}
+		if (action == null && state.energy < (STARTING_ENERGY * 0.55) && state.energy > (STARTING_ENERGY * .4)) {
+			action = hugWall(state.visField);
+		}
 		if (action == null) {
-			action = useWeapon(state.visField);}
+			action = useWeapon(state.visField, state.inv);
+		}
 		if (action == null) {
 			action = checkWall(state.visField, state.heading);
 		}
@@ -141,22 +152,20 @@ public class SRAgent {
 		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
 		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
 		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
+		String leftRear = visField[CURRENT_ROW + 1][CURRENT_COL - 1];
 		String heading = smell;
 		boolean wholeInWall = false;
 		System.out.println(smell);
 		if (smell.equals("f")) {
 			if (forward != null) {
-				if (forward.equals("*")) {
-					for (int i = 0; i < 2; i++) {// search two visible spots to
-													// right and left of wall
-													// for opening
+				if (forward.equals("*") || forward.equals("@")) {
+					for (int i = 0; i < 2; i++) {// search four visible spots
 						if ((visField[CURRENT_ROW - 1][(CURRENT_COL + (i + 1)) % 5]) == null) {
 							System.out.println((CURRENT_COL + (i + 1)) % 5);
 							System.out.println("Moving right from wall");
 							wholeInWall = true;
 							heading = "r"; // hole is right
-							i = 2; // signal end of loop we’ve found nearest
-									// hole in wall
+							i = 2; // signal end of loop we’ve found nearest hole in wall
 						} else if ((visField[CURRENT_ROW - 1][(CURRENT_COL - (i + 1)) % 5]) == null) {
 							System.out.println("Moving left from wall");
 							wholeInWall = true;
@@ -171,16 +180,19 @@ public class SRAgent {
 						if (rand == -1) {
 							System.out.println("Random generator chose left");
 							heading = "l";
-						} else if (rand == 1) {
+						} 
+						else if (rand == 1) {
 							System.out.println("Random generator chose rigt");
 							heading = "r";
-						} else {
+						} 
+						else {
 							System.out.println("Random generator broken" + rand);
 						}
 					}
 				}
 			}
-		} else if (smell.equals("l")) {// let's search for holes
+		} 
+		else if(smell.equals("l")) {// let's search for holes
 			System.out.println("smell is left");
 			System.out.println(forward + " = forward");
 			System.out.println(left + " = left");
@@ -189,23 +201,53 @@ public class SRAgent {
 					if (forward == null) {
 						System.out.println("Left Smell instinct blocked with wall");
 						heading = "f";
-					} else if (forward.equals("*")) {
-						System.out.print("In a corner, turning right!");
-						heading = "r";
 					}
-				}
-			} else if (twoLeft != null) {// checks two spaces left
-				if (twoLeft.equals("*")) {
-					if (forward == null) {
-						System.out.println("Left Smell instinct blocked with wall");
-						heading = "f";
-					} else if (forward.equals("*")) {
+					else if (forward.equals("*")) {
 						System.out.print("In a corner, turning right!");
 						heading = "r";
 					}
 				}
 			}
-		} else if (smell.equals("b")) {// let's search for holes
+			else if (twoLeft != null && leftRear != null) {// checks two spaces left/rear
+				System.out.println("There is a wall two spots left and rearLeft");
+				if (twoLeft.equals("*") && leftRear.equals("*")) {
+					
+						System.out.print("In a corner, turning right!");
+						heading = "l";
+				}
+			}
+			else if (twoLeft != null) {// checks two spaces left
+				System.out.println("There is a wall two spots left");
+				if (twoLeft.equals("*")) {
+					if (forward == null) {
+						System.out.println("Left Smell instinct blocked with wall");
+						heading = "f";
+					} 
+					else if (forward.equals("*")) {
+						System.out.print("In a corner, turning right!");
+						heading = "r";
+					}
+				}
+			}
+		} 
+		else if(smell.equals("r")) {// let's search for holes
+			System.out.println("smell is right");
+			System.out.println(forward + " = forward");
+			System.out.println(right + " = right");
+			if (right != null) {
+				if (right.equals("*") || right.equals("@")) {// checks one space
+																// right
+					if (forward == null) {
+						System.out.println("Left Smell instinct blocked with wall");
+						heading = "f";
+					} else if (forward.equals("*") || right.equals("@")) {
+						System.out.print("In a corner, turning left!");
+						heading = "l";
+					}
+				}
+			} 
+		}
+		else if (smell.equals("b")) {// let's search for holes
 			System.out.println("smell is back");
 			System.out.println(back + " = back");
 			if (back != null) {
@@ -218,15 +260,13 @@ public class SRAgent {
 						heading = "l";
 					}
 				}
-			} else if (visField[CURRENT_ROW - 1][CURRENT_COL + 1] != null) {// one
-																			// back
-																			// one
-																			// left
-																			// trap
+			} /*else if (visField[CURRENT_ROW - 1][CURRENT_COL + 1] != null) {
+				System.out.println("Rear View blocked");
 				if (visField[CURRENT_ROW - 1][CURRENT_COL - 1].equals("*")) {
 					heading = "l";
 				}
-			}
+			}*/
+
 		}
 		return heading;
 	}
@@ -258,25 +298,100 @@ public class SRAgent {
 							hammer = "g";
 						}
 					}
+					// check wall for direction
+					if (hammer != null) {
+						if (!hammer.equals("g")) {
+							System.out.println("Gets to hammer chack");
+							hammer = checkWall(visField, hammer);
+						}
+					}
 				}
 			}
 		}
 		return hammer;
 	}
-	
-	private String useWeapon(String[][] visField) {
-		System.out.println("Entering useWeapon");
+
+	private String useWeapon(String[][] visField, String inventory) {
+		System.out.println("Use Weapon inventory is ");
+		System.out.println(inventory);
 		String action = null;
-		if (visField[CURRENT_ROW - 1][CURRENT_COL] != null) {
+		if (visField[CURRENT_ROW - 1][CURRENT_COL] != null && !inventory.equals("()")) {
 			if (visField[CURRENT_ROW - 1][CURRENT_COL].equals("@")) {
 				System.out.println("Non-Wall Found");
 				action = "u";
 			}
-			else {
-				System.out.println("Non-Wall Not Found");
-			}
 		}
 		return action;
+	}
+
+	private String hugWall(String[][] visField) {
+		// declare local variables
+		Random r = new Random();
+		int rand = 0;
+		String forward = visField[CURRENT_ROW - 1][CURRENT_COL];
+		String right = visField[CURRENT_ROW][CURRENT_COL + 1];
+		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
+		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
+		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
+		String heading = null;
+		if (left != null) {
+			if (left.equals("*") || left.equals("@")) {// checks one space left
+				System.out.println("Wall hugging to left");
+				System.out.println(forward + " = forward");
+				System.out.println(left + " = left");
+				if (forward == null) {
+					System.out.println("Let's hug wall moving forward");
+					heading = "f";
+				} else if (forward.equals("*") || left.equals("@") || forward.equals("@") || left.equals("*")) {
+					System.out.print("In a corner, turning right!");
+					heading = "r";
+				}
+			}
+		}
+
+		if (right != null) {
+			if (right.equals("*") || right.equals("@")) {// checks one space
+															// right
+				System.out.println("Wall hugging is right");
+				System.out.println(forward + " = forward");
+				System.out.println(right + " = right");
+				if (forward == null) {
+					System.out.println("Let's hug wall moving forwad");
+					heading = "f";
+				} else if (forward.equals("*") || right.equals("@") || forward.equals("@") || right.equals("*")) {
+					System.out.print("In a corner, turning left!");
+					heading = "l";
+				}
+			}
+		}
+		return heading;
+	}
+
+	private static String checkBoulder(String visField[][]) {
+		String forward = visField[CURRENT_ROW - 1][CURRENT_COL];
+		String right = visField[CURRENT_ROW][CURRENT_COL + 1];
+		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
+		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
+		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
+		String heading = null;
+		if (forward != null) {
+			if (forward.equals("@")) {
+				heading = "u";
+			}
+		} else if (left != null) {
+			if (left.equals("@")) {
+				heading = "l";
+			}
+		} else if (right != null) {
+			if (right.equals("@")) {
+				heading = "r";
+			}
+		} else if (back != null) {
+			if (back.equals("@")) {
+				heading = "b";
+			}
+		}
+		return heading;
 	}
 
 	public static void main(String[] args) {
@@ -289,7 +404,7 @@ public class SRAgent {
 		String heading;
 		String inv;
 		String groundContents;
-		String energy;
+		int energy;
 		String lastAction;
 		String[][] visField;
 
@@ -298,7 +413,7 @@ public class SRAgent {
 			this.heading = heading;
 			this.inv = inv;
 			this.groundContents = groundContents;
-			this.energy = energy;
+			this.energy = Integer.parseInt(energy);
 			this.lastAction = lastAction;
 			this.visField = visField;
 		}
