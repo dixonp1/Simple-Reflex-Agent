@@ -89,6 +89,9 @@ public class SRAgent {
 		if (action == null && state.inv.contains("T")) {
 			action = checkBoulder(state.visField);
 		}
+		if (action == null && state.inv.contains("K")) {
+			action = checkKey(state.visField);
+		}
 		if (action == null && state.energy < (STARTING_ENERGY * (0.9)) && state.energy > (STARTING_ENERGY * (0.79))) {
 			action = hugWall(state.visField);
 		}
@@ -158,19 +161,19 @@ public class SRAgent {
 		System.out.println(smell);
 		if (smell.equals("f")) {
 			if (forward != null) {
-				if (forward.equals("*") || forward.equals("@")) {
+				if (forward.equals("*") || forward.equals("@") || forward.equals("#")) {
 					for (int i = 0; i < 2; i++) {// search four visible spots
 						if ((visField[CURRENT_ROW - 1][(CURRENT_COL + (i + 1)) % 5]) == null) {
 							System.out.println((CURRENT_COL + (i + 1)) % 5);
 							System.out.println("Moving right from wall");
 							wholeInWall = true;
 							heading = "r"; // hole is right
-							i = 2; // signal end of loop we’ve found nearest hole in wall
+							i = 2; // signal end of loop we have found nearest hole in wall
 						} else if ((visField[CURRENT_ROW - 1][(CURRENT_COL - (i + 1)) % 5]) == null) {
 							System.out.println("Moving left from wall");
 							wholeInWall = true;
 							heading = "l"; // hole is left
-							i = 2; // signal end of loop we’ve found nearest
+							i = 2; // signal end of loop we have found nearest
 									// hole in wall
 						}
 					}
@@ -277,31 +280,31 @@ public class SRAgent {
 		for (i = 0; i < 7; i++) {
 			for (j = 0; j < 5; j++) {
 				if (visField[i][j] != null) {
-					if (visField[i][j].equals("T")) {
+					if (visField[i][j].equals("T") || visField[i][j].equals("K")) {
 						System.out.println("Hammer Found");
 						if (CURRENT_ROW - i > 0) {
-							System.out.println("Moving Forward towards hammer.");
+							System.out.println("Moving Forward towards item.");
 							hammer = "f";
 						} else if (CURRENT_ROW - i < 0) {
-							System.out.println("Moving Back towards hammer.");
+							System.out.println("Moving Back towards item.");
 							hammer = "b";
 						} else if (CURRENT_COL - j > 0) {
-							System.out.println("Moving Left towards hammer.");
+							System.out.println("Moving Left towards item.");
 							hammer = "l";
 						} else if (CURRENT_COL - j < 0) {
-							System.out.println("Moving Right towards hammer.");
+							System.out.println("Moving Right towards item.");
 							hammer = "r";
 						}
 					} else if (ground != null) {
-						if (ground.contains("T")) {
-							System.out.println("Grabbing hammer.");
+						if (ground.contains("T") || ground.contains("K")) {
+							System.out.println("Grabbing Item.");
 							hammer = "g";
 						}
 					}
 					// check wall for direction
 					if (hammer != null) {
 						if (!hammer.equals("g")) {
-							System.out.println("Gets to hammer chack");
+							System.out.println("Gets to item chack");
 							hammer = checkWall(visField, hammer);
 						}
 					}
@@ -316,7 +319,7 @@ public class SRAgent {
 		System.out.println(inventory);
 		String action = null;
 		if (visField[CURRENT_ROW - 1][CURRENT_COL] != null && !inventory.equals("()")) {
-			if (visField[CURRENT_ROW - 1][CURRENT_COL].equals("@")) {
+			if (visField[CURRENT_ROW - 1][CURRENT_COL].equals("@") || visField[CURRENT_ROW - 1][CURRENT_COL].equals("#")) {
 				System.out.println("Non-Wall Found");
 				action = "u";
 			}
@@ -335,14 +338,14 @@ public class SRAgent {
 		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
 		String heading = null;
 		if (left != null) {
-			if (left.equals("*") || left.equals("@")) {// checks one space left
+			if (left.equals("*") || left.equals("@") || left.equals("#")) {// checks one space left
 				System.out.println("Wall hugging to left");
 				System.out.println(forward + " = forward");
 				System.out.println(left + " = left");
 				if (forward == null) {
 					System.out.println("Let's hug wall moving forward");
 					heading = "f";
-				} else if (forward.equals("*") || left.equals("@") || forward.equals("@") || left.equals("*")) {
+				} else if (forward.equals("*") || left.equals("@") || forward.equals("@") || left.equals("*") || forward.equals("#") || left.equals("#")) {
 					System.out.print("In a corner, turning right!");
 					heading = "r";
 				}
@@ -350,7 +353,7 @@ public class SRAgent {
 		}
 
 		if (right != null) {
-			if (right.equals("*") || right.equals("@")) {// checks one space
+			if (right.equals("*") || right.equals("@") || right.equals("#")) {// checks one space
 															// right
 				System.out.println("Wall hugging is right");
 				System.out.println(forward + " = forward");
@@ -358,7 +361,7 @@ public class SRAgent {
 				if (forward == null) {
 					System.out.println("Let's hug wall moving forwad");
 					heading = "f";
-				} else if (forward.equals("*") || right.equals("@") || forward.equals("@") || right.equals("*")) {
+				} else if (forward.equals("*") || right.equals("@") || forward.equals("@") || right.equals("*") || forward.equals("#") || right.equals("#")) {
 					System.out.print("In a corner, turning left!");
 					heading = "l";
 				}
@@ -388,6 +391,33 @@ public class SRAgent {
 			}
 		} else if (back != null) {
 			if (back.equals("@")) {
+				heading = "b";
+			}
+		}
+		return heading;
+	}
+	
+	private static String checkKey(String visField[][]) {
+		String forward = visField[CURRENT_ROW - 1][CURRENT_COL];
+		String right = visField[CURRENT_ROW][CURRENT_COL + 1];
+		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
+		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
+		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
+		String heading = null;
+		if (forward != null) {
+			if (forward.equals("K")) {
+				heading = "u";
+			}
+		} else if (left != null) {
+			if (left.equals("K")) {
+				heading = "l";
+			}
+		} else if (right != null) {
+			if (right.equals("K")) {
+				heading = "r";
+			}
+		} else if (back != null) {
+			if (back.equals("K")) {
 				heading = "b";
 			}
 		}
