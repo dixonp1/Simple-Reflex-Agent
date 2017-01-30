@@ -241,8 +241,13 @@ public class SRAgent {
 		String right = visField[CURRENT_ROW][CURRENT_COL + 1];
 		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
 		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
+		String twoRight = visField[CURRENT_ROW][CURRENT_COL + 2]; 
 		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
 		String leftRear = visField[CURRENT_ROW + 1][CURRENT_COL - 1];
+		String rightRear = visField[CURRENT_ROW + 1][CURRENT_COL + 1]; 
+		String leftFront = visField[CURRENT_ROW - 1][CURRENT_COL - 1]; 
+		String rightFront = visField[CURRENT_ROW - 1][CURRENT_COL + 1]; 
+		String rightRightFront = visField[CURRENT_ROW - 1][CURRENT_COL + 2]; 
 		String heading = smell;
 		boolean wholeInWall = false;
 		System.out.println(smell);
@@ -273,7 +278,7 @@ public class SRAgent {
 							heading = "l";
 						} 
 						else if (rand == 1) {
-							System.out.println("Random generator chose rigt");
+							System.out.println("Random generator chose right");
 							heading = "r";
 						} 
 						else {
@@ -283,10 +288,11 @@ public class SRAgent {
 				}
 			}
 		} 
-		else if(smell.equals("l")) {// let's search for holes
+		else if(smell.equals("l")) {
 			System.out.println("smell is left");
 			System.out.println(forward + " = forward");
 			System.out.println(left + " = left");
+			// checks one space left then two spaces left 
 			if (left != null) {
 				if (left.equals("*") || left.equals("@") || left.equals("#") || left.equals("Q")) {// checks one space left
 					if (forward == null) {
@@ -299,22 +305,32 @@ public class SRAgent {
 					}
 				}
 			}
+			else if (twoLeft != null && leftRear != null && leftFront != null) {// checks two spaces left/rear 
+				System.out.println("There is a wall two spots left and rearLeft and frontLeft"); 
+				if ((twoLeft.equals("*") || twoLeft.equals("@") || twoLeft.equals("#") || twoLeft.equals("Q")) && (leftRear.equals("*") || leftRear.equals("@") || leftRear.equals("#") || leftRear.equals("Q")) && (leftFront.equals("*") || leftFront.equals("@") || leftFront.equals("#") || leftFront.equals("Q"))) { 
+					if (forward == null)
+					{
+						System.out.print("Three Sided trap!");
+						heading = "f";
+					}
+				}
+			}
 			else if (twoLeft != null && leftRear != null) {// checks two spaces left/rear
 				System.out.println("There is a wall two spots left and rearLeft");
 				if (twoLeft.equals("*") && leftRear.equals("*")) {
 					
-						System.out.print("In a corner, turning right!");
+						System.out.print("In a corner, turning left!");
 						heading = "l";
 				}
 			}
 			else if (twoLeft != null) {// checks two spaces left
 				System.out.println("There is a wall two spots left");
-				if (twoLeft.equals("*")) {
+				if (twoLeft.equals("*") || twoLeft.equals("@") || twoLeft.equals("#") || twoLeft.equals("Q")) {
 					if (forward == null) {
 						System.out.println("Left Smell instinct blocked with wall");
 						heading = "f";
 					} 
-					else if (forward.equals("*")) {
+					else if (forward.equals("*") || twoLeft.equals("@") || twoLeft.equals("#") || twoLeft.equals("Q")) {
 						System.out.print("In a corner, turning right!");
 						heading = "r";
 					}
@@ -325,9 +341,9 @@ public class SRAgent {
 			System.out.println("smell is right");
 			System.out.println(forward + " = forward");
 			System.out.println(right + " = right");
+			// checks one space right then two spaces right 
 			if (right != null) {
-				if (right.equals("*") || right.equals("@") || right.equals("#") || right.equals("Q")) {// checks one space
-																// right
+				if (right.equals("*") || right.equals("@") || right.equals("#") || right.equals("Q")) {// checks one space right
 					if (forward == null) {
 						System.out.println("Right Smell instinct blocked with wall");
 						heading = "f";
@@ -336,28 +352,66 @@ public class SRAgent {
 						heading = "l";
 					}
 				}
-			} 
+			}
+			else if (twoRight != null && rightRear != null && rightFront != null) {// checks two spaces right/rear 
+				System.out.println("There is a wall two spots right and rearRight and frontRight"); 
+				if ((twoRight.equals("*") || twoRight.equals("@") || twoRight.equals("#") || twoRight.equals("Q")) && (rightRear.equals("*") || rightRear.equals("@") || rightRear.equals("#") || rightRear.equals("Q")) && (rightFront.equals("*") || rightFront.equals("@") || rightFront.equals("#") || rightFront.equals("Q"))) { 
+					if (forward == null)
+					{
+						System.out.print("Three Sided trap!");
+						heading = "f";
+					}
+				}
+			}
+			else if (twoRight != null && rightRear != null &&  rightFront == null && rightRightFront == null) {// checks two spaces right/rear
+				System.out.println("There is a wall two spots right and rearRight and rightFront and rightRightFront");
+				if ((twoRight.equals("*") || twoRight.equals("@") || twoRight.equals("#") || twoRight.equals("Q")) && (rightRear.equals("*") || rightRear.equals("@") || rightRear.equals("#") || rightRear.equals("Q"))) {
+						System.out.print("Right front Open!");
+						heading = "r";
+				}
+			}
+			else if (twoRight != null) {// checks two spaces right
+				System.out.println("There is a wall two spots right");
+				if (twoRight.equals("*") || twoRight.equals("@") || twoRight.equals("#") || twoRight.equals("Q")) {
+					if (forward == null) {
+						System.out.println("TwoRight heading forward");
+						heading = "f";
+					} 
+					else if (forward.equals("*") || forward.equals("@") || forward.equals("#") || forward.equals("Q")) {
+						System.out.print("In a corner, turning left!");
+						heading = "l";
+					}
+				}
+			}
 		}
 		else if (smell.equals("b")) {// let's search for holes
 			System.out.println("smell is back");
 			System.out.println(back + " = back");
 			if (back != null) {
-				if (back.equals("*") || back.equals("#")) {
+				if (back.equals("*") || back.equals("#") || back.equals("Q")) {
 					if (forward == null) {
-						System.out.println("Left Smell instinct blocked with wall");
+						System.out.println("Back Smell instinct blocked by obstacle");
 						heading = "f";
 					} else if (forward.equals("*")) {
 						System.out.print("In a corner, turning right!");
 						heading = "l";
 					}
 				}
-			} else if (visField[CURRENT_ROW + 1][CURRENT_COL - 1] != null) {
-				System.out.println("Rear View blocked");
-				if (visField[CURRENT_ROW + 1][CURRENT_COL - 1].equals("*")) {
+			} else if (leftRear != null && !leftRear.equals("+") && !leftRear.equals("T") && !leftRear.equals("K")) { 
+				System.out.println("leftRear View blocked"); 
+				if ((leftRear.equals("*") || leftRear.equals("@") || leftRear.equals("#") || leftRear.equals("Q")) && left == null) {
 					heading = "l";
 				}
+				else
+					heading = "r";
+			} else if (rightRear != null) { 
+				System.out.println("rightRear View blocked"); 
+				if ((rightRear.equals("*") || rightRear.equals("@") || rightRear.equals("#") || rightRear.equals("Q")) && right == null) { 
+					heading = "r";
+				}
+				else
+					heading = "l";
 			}
-
 		}
 		return heading;
 	}
@@ -461,13 +515,15 @@ public class SRAgent {
 		String left = visField[CURRENT_ROW][CURRENT_COL - 1];
 		String twoLeft = visField[CURRENT_ROW][CURRENT_COL - 2];
 		String back = visField[CURRENT_ROW + 1][CURRENT_COL];
+		String leftRear = visField[CURRENT_ROW + 1][CURRENT_COL - 1]; 
+		String rightRear = visField[CURRENT_ROW + 1][CURRENT_COL + 1]; 
 		String heading = null;
 		if (left != null) {
 			//if wall or boulder is left of the agent, hug it
-			if (left.equals("*") || left.equals("@")) {// checks one space left
+			if (left.equals("*") || left.equals("@") || left. equals("Q")) {// checks one space left
 				
 				//debug*******************************
-				System.out.println("Wall hugging to left");
+				System.out.println("Hug wall mode left");
 				System.out.println(forward + " = forward");
 				System.out.println(left + " = left");
 				//**************************
@@ -486,11 +542,10 @@ public class SRAgent {
 					heading = "r";
 				}
 			}
-		}
-
-		if (right != null) {
+		} 
+		else if (right != null) {
 			//if wall or boulder is right of the agent, hug it
-			if (right.equals("*") || right.equals("@")) {// checks one space
+			if (right.equals("*") || right.equals("@") || right.equals("Q")) {// checks one space
 															// right
 				//debug***************************
 				System.out.println("Wall hugging is right");
@@ -512,7 +567,18 @@ public class SRAgent {
 					heading = "l";
 				}
 			}
+		}/*
+		else if (rightRear != null) {
+			System.out.println("No wall beside, but right rear so going right"); 
+			heading = "r"; 
 		}
+		*/
+		/*
+		else if (leftRear != null) {
+			System.out.println("No wall beside, but left rear so going left"); 
+			heading = "l"; 
+		}
+		*/
 		return heading;
 	}
 
